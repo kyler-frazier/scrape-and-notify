@@ -25,14 +25,14 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies
-RUN poetry install --no-dev
+RUN poetry install
 
 # Copy application code
-COPY . .
+COPY src/scrape_and_notify ./src/scrape_and_notify
 
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Command to run the application
-CMD ["poetry", "run", "python", "src/main.py"]
+CMD ["poetry", "run", "scrape-and-notify"]

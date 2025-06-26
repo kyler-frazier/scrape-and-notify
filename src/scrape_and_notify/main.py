@@ -66,6 +66,7 @@ async def main():
         await notifier.send_notification(f"Scraper error: {e}")
     finally:
         await scraper.close()
+        await notifier.close()
 
 
 def run():

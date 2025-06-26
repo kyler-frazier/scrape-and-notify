@@ -115,16 +115,16 @@ class Notifier:
 
         except discord.errors.LoginFailure:
             logger.exception("Failed to login to Discord. Check your DISCORD_BOT_TOKEN.")
-            return False
         except discord.errors.Forbidden:
             logger.exception("Bot doesn't have permission to send messages to the specified channel.")
-            return False
         except discord.errors.NotFound:
             logger.exception(f"Discord channel with ID {self.channel_id} not found.")
-            return False
         except Exception as e:
             logger.exception(f"Unexpected error sending Discord message: {e}")
-            return False
-        finally:
-            if not self.client.is_closed():
-                await self.client.close()
+        return False
+
+    async def close(self) -> None:
+        """Close the Discord client connection."""
+        if not self.client.is_closed():
+            await self.client.close()
+            logger.info("Discord client connection closed")

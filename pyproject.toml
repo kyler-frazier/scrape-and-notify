@@ -3,7 +3,6 @@ name = "scrape-and-notify"
 version = "0.1.0"
 description = "A web scraper with notifications"
 authors = ["Kyler Frazier <kyfrazier100@gmail.com>"]
-readme = "README.md"
 packages = [{include = "scrape_and_notify", from = "src"}]
 
 [tool.poetry.dependencies]
