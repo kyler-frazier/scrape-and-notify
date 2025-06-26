@@ -3,25 +3,50 @@ Configuration module for the web scraper.
 """
 
 import logging
-import os
-from typing import Optional
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config:
-    """Configuration class to manage all settings."""
+class Config(BaseSettings):
+    """Configuration class to manage all settings using Pydantic."""
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
 
     # Scraper settings
-    TARGET_URL: str = os.getenv("TARGET_URL", "https://prometheusapartments.com/ca/sunnyvale-apartments/ironworks")
-    TARGET_TEXT: str = os.getenv("TARGET_TEXT", "2 Bed")
-    CHECK_INTERVAL: int = int(os.getenv("CHECK_INTERVAL", "3600"))  # 1 hour default
+    target_url: str = Field(description="The target URL to scrape", alias="TARGET_URL")
+
+    # Search configuration
+    search_type: str = Field(default="json", description="Search type: 'html' or 'json'", alias="SEARCH_TYPE")
+    target_match: str = Field(description="Target value to match", alias="TARGET_MATCH")
+    target_location: str | None = Field(description="JSONPath location for target match", alias="TARGET_LOCATION")
+
+    check_interval: int = Field(
+        default=900, description="Check interval in seconds (default: 15 minutes)", alias="CHECK_INTERVAL"
+    )
 
     # Request settings
-    REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "30"))
-    REQUEST_DELAY: float = float(os.getenv("REQUEST_DELAY", "1.0"))
+    request_timeout: int = Field(default=30, description="Request timeout in seconds", alias="REQUEST_TIMEOUT")
+    request_delay: float = Field(default=1.0, description="Delay between requests in seconds", alias="REQUEST_DELAY")
 
     # Discord settings
-    DISCORD_BOT_TOKEN: Optional[str] = os.getenv("DISCORD_BOT_TOKEN")
-    DISCORD_CHANNEL_ID: Optional[str] = os.getenv("DISCORD_CHANNEL_ID")
+    discord_bot_token: str | None = Field(
+        default=None, description="Discord bot token for notifications", alias="DISCORD_BOT_TOKEN"
+    )
+    discord_channel_id: str | None = Field(
+        default=None, description="Discord channel ID for notifications", alias="DISCORD_CHANNEL_ID"
+    )
 
     # Logging settings
-    LOG_LEVEL: str = logging.getLevelName(os.getenv("LOG_LEVEL", "INFO").upper())
+    log_level: str = Field(default="INFO", description="Logging level", alias="LOG_LEVEL")
+
+    @field_validator("search_type")
+    @classmethod
+    def validate_search_type(cls, v: str) -> str:
+        """Normalize search_type to lowercase."""
+        return v.lower()
+
+    @property
+    def log_level_int(self) -> int:
+        """Convert log level string to integer."""
+        return getattr(logging, self.log_level.upper())
