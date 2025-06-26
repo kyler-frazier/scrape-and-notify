@@ -3,7 +3,6 @@ Notification module for sending alerts via Discord bot when target content is fo
 """
 
 import logging
-import os
 from datetime import datetime
 
 import discord
@@ -14,11 +13,11 @@ logger = logging.getLogger(__name__)
 class Notifier:
     """Handle Discord bot notifications."""
 
-    def __init__(self):
+    def __init__(self, bot_token: str | None = None, channel_id: str | None = None):
         """Initialize the Discord notifier."""
         # Discord configuration (set via environment variables)
-        self.bot_token = os.getenv("DISCORD_BOT_TOKEN")
-        self.channel_id = os.getenv("DISCORD_CHANNEL_ID")
+        self.bot_token = bot_token
+        self.channel_id = channel_id
 
         if self.channel_id:
             self.channel_id = int(self.channel_id)

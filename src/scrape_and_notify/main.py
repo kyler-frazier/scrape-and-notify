@@ -31,7 +31,7 @@ async def main():
     logger.info(f"JSON path: {config.target_location}")
     logger.info(f"Check interval: {config.check_interval} seconds")
 
-    notifier = Notifier()
+    notifier = Notifier(bot_token=config.discord_bot_token, channel_id=config.discord_channel_id)
     scraper = WebScraper(notifier=notifier, timeout=config.request_timeout, delay=config.request_delay)
 
     try:
