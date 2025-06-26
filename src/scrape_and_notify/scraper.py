@@ -68,16 +68,16 @@ class WebScraper:
 
         except aiohttp.ClientResponseError as e:
             # Handle HTTP status errors from response.raise_for_status()
-            logger.error(f"HTTP error {e.status} occurred while fetching {url}: {e.message}")
+            logger.exception(f"HTTP error {e.status} occurred while fetching {url}: {e.message}")
             await self.notifier.send_notification(f"HTTP {e.status} error occurred while checking {url}: {e.message}")
         except aiohttp.ClientError as e:
-            logger.error(f"Error fetching {url}: {e}")
+            logger.exception(f"Error fetching {url}: {e}")
             await self.notifier.send_notification(f"Network error occurred while checking {url}: {str(e)}")
         except asyncio.TimeoutError as e:
-            logger.error(f"Timeout fetching {url}: {e}")
+            logger.exception(f"Timeout fetching {url}: {e}")
             await self.notifier.send_notification(f"Timeout error occurred while checking {url}: {str(e)}")
         except Exception as e:
-            logger.error(f"Unexpected error fetching {url}: {e}")
+            logger.exception(f"Unexpected error fetching {url}: {e}")
             await self.notifier.send_notification(f"Unexpected error occurred while checking {url}: {str(e)}")
         return None
 
@@ -107,7 +107,7 @@ class WebScraper:
             return text
 
         except Exception as e:
-            logger.error(f"Error parsing HTML: {e}")
+            logger.exception(f"Error parsing HTML: {e}")
             return ""
 
     def parse_json(self, content: str) -> dict | None:
@@ -123,7 +123,7 @@ class WebScraper:
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
-            logger.error(f"Error parsing JSON: {e}")
+            logger.exception(f"Error parsing JSON: {e}")
             return None
 
     def check_json_path(self, data: dict, json_path: str, target_value: Any, case_sensitive: bool = False) -> bool:
@@ -165,7 +165,7 @@ class WebScraper:
             return False
 
         except Exception as e:
-            logger.error(f"Error evaluating JSONPath '{json_path}': {e}")
+            logger.exception(f"Error evaluating JSONPath '{json_path}': {e}")
             return False
 
     async def check_for_text(self, url: str, target_text: str, case_sensitive: bool = False) -> bool:
@@ -275,5 +275,5 @@ class WebScraper:
             return found
 
         except Exception as e:
-            logger.error(f"Error checking for element {selector}: {e}")
+            logger.exception(f"Error checking for element {selector}: {e}")
             return False

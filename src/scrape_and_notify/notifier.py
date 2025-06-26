@@ -71,7 +71,7 @@ class Notifier:
             return await self._send_discord_message(message, title)
 
         except Exception as e:
-            logger.error(f"Failed to send Discord message: {e}")
+            logger.exception(f"Failed to send Discord message: {e}")
             return False
 
     async def _send_discord_message(self, message: str, title: str) -> bool:
@@ -114,16 +114,16 @@ class Notifier:
             return True
 
         except discord.errors.LoginFailure:
-            logger.error("Failed to login to Discord. Check your DISCORD_BOT_TOKEN.")
+            logger.exception("Failed to login to Discord. Check your DISCORD_BOT_TOKEN.")
             return False
         except discord.errors.Forbidden:
-            logger.error("Bot doesn't have permission to send messages to the specified channel.")
+            logger.exception("Bot doesn't have permission to send messages to the specified channel.")
             return False
         except discord.errors.NotFound:
-            logger.error(f"Discord channel with ID {self.channel_id} not found.")
+            logger.exception(f"Discord channel with ID {self.channel_id} not found.")
             return False
         except Exception as e:
-            logger.error(f"Unexpected error sending Discord message: {e}")
+            logger.exception(f"Unexpected error sending Discord message: {e}")
             return False
         finally:
             if not self.client.is_closed():

@@ -62,7 +62,7 @@ async def main():
     except KeyboardInterrupt:
         logger.info("Scraper stopped by user.")
     except Exception as e:
-        logger.error(f"Error occurred: {e}")
+        logger.exception(f"Error occurred: {e}")
         await notifier.send_notification(f"Scraper error: {e}")
     finally:
         await scraper.close()
