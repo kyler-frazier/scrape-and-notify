@@ -4,11 +4,10 @@ A Python-based web scraper that monitors specific websites for target content an
 
 ## Features
 
-- 🔍 **Web Scraping**: Monitor any website for specific text or HTML elements
-- 📧 **Email Notifications**: Get notified via email when target content is found
-- 🔗 **Webhook Support**: Send notifications to custom webhooks
-- 💬 **Slack Integration**: Send alerts to Slack channels
-- 🐳 **Dockerized**: Easy deployment with Docker and docker-compose
+- 🔍 **Web Scraping**: Monitor any website for specific text or JSON content
+- 🎯 **Flexible Search**: Support for both HTML text search and JSON path queries
+- 💬 **Discord Integration**: Send alerts to Discord channels via bot
+- 🐳 **Dockerized**: Easy deployment with Docker Compose (recommended)
 - ⚙️ **Configurable**: Flexible configuration via environment variables
 - 📝 **Logging**: Comprehensive logging to files and console
 
@@ -16,9 +15,8 @@ A Python-based web scraper that monitors specific websites for target content an
 
 ### Prerequisites
 
-- Python 3.10+
-- Poetry
-- Docker and docker-compose
+- Docker and Docker Compose (recommended)
+- Python 3.10+ and Poetry (alternative)
 
 ### Setup
 
@@ -27,48 +25,48 @@ A Python-based web scraper that monitors specific websites for target content an
    cd scrape-and-notify
    ```
 
-2. **Install dependencies**:
-   ```bash
-   poetry install
-   ```
-
-3. **Configure your scraper**:
-   Create a `.env` file based on the configuration options in `src/config.py`:
+2. **Configure your scraper**:
+   Create a `.env` file based on the configuration options below:
    ```bash
    # Required
-   TARGET_URL=https://example.com
-   TARGET_TEXT=your target text here
+   TARGET_URL=https://example.com/api/data
+   TARGET_MATCH=your target value here
    
-   # Optional - Email notifications
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASSWORD=your-app-password
-   EMAIL_RECIPIENT=recipient@email.com
+   # Search configuration
+   SEARCH_TYPE=json  # or 'html'
+   TARGET_LOCATION=$.data.status  # JSONPath for JSON search (required for json type)
    
-   # Optional - Slack notifications
-   SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+   # Optional - Discord notifications
+   DISCORD_BOT_TOKEN=your-discord-bot-token
+   DISCORD_CHANNEL_ID=your-discord-channel-id
    
-   # Optional - Custom webhook
-   WEBHOOK_URL=https://your-webhook-endpoint.com/webhook
+   # Optional - Timing and request settings
+   CHECK_INTERVAL=900  # seconds between checks (default: 15 minutes)
+   REQUEST_TIMEOUT=30  # request timeout in seconds
+   REQUEST_DELAY=1.0   # delay between requests in seconds
+   
+   # Optional - Logging
+   LOG_LEVEL=INFO
    ```
-
-4. **Update the target configuration**:
-   Edit `src/main.py` to set your specific URL and target text, or use environment variables.
 
 ### Running the Application
 
-#### Option 1: With Docker (Recommended)
+#### Option 1: With Docker Compose (Recommended)
 
 ```bash
 # Build and run with docker-compose
-docker-compose up --build
+docker compose up --build
 
 # Run in the background
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
-#### Option 2: With Poetry
+#### Option 2: With Poetry (Alternative)
 
 ```bash
+# Install dependencies
+poetry install
+
 # Run directly
 poetry run python src/main.py
 
@@ -83,24 +81,35 @@ All configuration is handled through environment variables. Key settings include
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `TARGET_URL` | Website to monitor | `https://example.com` |
-| `TARGET_TEXT` | Text to search for | `target text` |
-| `CHECK_INTERVAL` | Seconds between checks | `3600` (1 hour) |
-| `EMAIL_USER` | Email username | None |
-| `EMAIL_PASSWORD` | Email password/app password | None |
-| `EMAIL_RECIPIENT` | Email recipient | None |
-| `SLACK_WEBHOOK_URL` | Slack webhook URL | None |
-| `WEBHOOK_URL` | Custom webhook URL | None |
+| `TARGET_URL` | Website or API endpoint to monitor | *Required* |
+| `TARGET_MATCH` | Value to search for | *Required* |
+| `SEARCH_TYPE` | Search method: `json` or `html` | `json` |
+| `TARGET_LOCATION` | JSONPath location for JSON searches | *Required for JSON* |
+| `CHECK_INTERVAL` | Seconds between checks | `900` (15 minutes) |
+| `REQUEST_TIMEOUT` | Request timeout in seconds | `30` |
+| `REQUEST_DELAY` | Delay between requests in seconds | `1.0` |
+| `DISCORD_BOT_TOKEN` | Discord bot token for notifications | None |
+| `DISCORD_CHANNEL_ID` | Discord channel ID for notifications | None |
+| `LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` |
+
+### Search Types
+
+- **JSON Search** (`SEARCH_TYPE=json`): Use JSONPath expressions to search within JSON responses
+  - Example: `TARGET_LOCATION=$.products[0].availability` 
+- **HTML Search** (`SEARCH_TYPE=html`): Search for text content within HTML pages
+  - No `TARGET_LOCATION` needed for HTML searches
 
 ## Project Structure
 
 ```
 ├── src/
-│   ├── main.py          # Main application entry point
-│   ├── scraper.py       # Web scraping functionality
-│   ├── notifier.py      # Notification handling
-│   └── config.py        # Configuration management
-├── logs/                # Log files (created automatically)
+│   ├── scrape_and_notify/
+│   │   ├── __init__.py
+│   │   ├── main.py       # Main application entry point
+│   │   ├── scraper.py    # Web scraping functionality
+│   │   ├── notifier.py   # Notification handling
+│   │   └── config.py     # Configuration management
+├── logs/                 # Log files (created automatically)
 ├── Dockerfile           # Docker configuration
 ├── docker-compose.yml   # Docker Compose configuration
 ├── pyproject.toml       # Poetry dependencies
@@ -109,21 +118,14 @@ All configuration is handled through environment variables. Key settings include
 
 ## Notifications
 
-The scraper supports multiple notification methods:
-
-### Email
-Configure email notifications using Gmail or any SMTP server:
-- Set `EMAIL_USER`, `EMAIL_PASSWORD`, and `EMAIL_RECIPIENT`
-- For Gmail, use an app password instead of your regular password
-
-### Slack
-Create a Slack webhook and set `SLACK_WEBHOOK_URL`
-
-### Custom Webhooks
-Set `WEBHOOK_URL` to send JSON payloads to any endpoint
+### Discord
+To set up Discord notifications:
+1. Create a Discord bot in the Discord Developer Portal
+2. Add the bot to your server with necessary permissions
+3. Set `DISCORD_BOT_TOKEN` and `DISCORD_CHANNEL_ID` in your `.env` file
 
 ### Console/File Logging
-All notifications are logged to both console and `logs/scraper.log`
+All notifications and status updates are logged to both console and `logs/scraper.log`
 
 ## Development
 
@@ -140,8 +142,9 @@ poetry run ruff check --fix
 ```
 
 ### Docker Development
-For development with live code reloading, uncomment the volume mount in `docker-compose.yml`:
+For development with live code reloading, you can mount the source code:
 ```yaml
+# Add to docker-compose.yml under the scraper service
 volumes:
   - .:/app
   - ./logs:/app/logs
@@ -150,20 +153,21 @@ volumes:
 ## Customization
 
 ### Different Scraping Methods
-The `WebScraper` class supports:
-- Text search: `check_for_text(url, text)`
-- CSS selector search: `check_for_element(url, selector)`
+The scraper supports:
+- **JSON API monitoring**: Perfect for REST APIs, use JSONPath expressions
+- **HTML content monitoring**: Search for text within web pages
 
 ### Adding New Notification Methods
-Extend the `Notifier` class in `src/notifier.py` to add new notification channels.
+Extend the notification system in `src/scrape_and_notify/notifier.py` to add new notification channels.
 
 ## Security Notes
 
 - Never commit `.env` files with real credentials
 - For production, use proper secrets management
-- Consider using app passwords for email instead of regular passwords
+- Store Discord bot tokens securely
 - Be respectful with scraping frequency to avoid being blocked
+- Consider the website's robots.txt and terms of service
 
 ## License
 
-[Add your license information here] 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
