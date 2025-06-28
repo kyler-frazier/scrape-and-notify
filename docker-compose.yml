@@ -1,10 +1,6 @@
-version: '3.8'
-
 services:
   scraper:
     build: .
     container_name: scrape-and-notify
-    environment:
-      - PYTHONUNBUFFERED=1
     env_file:
       - .env

@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user early
+RUN adduser --disabled-password --gecos '' appuser
+
 # Install Poetry
 RUN pip install poetry
 
@@ -18,21 +21,24 @@ RUN pip install poetry
 ENV POETRY_VENV_IN_PROJECT=false \
     POETRY_NO_INTERACTION=1
 
-# Set work directory
+# Set work directory and change ownership
 WORKDIR /app
+RUN chown appuser:appuser /app
+
+# Switch to appuser for all Poetry operations
+USER appuser
 
 # Copy Poetry files
-COPY pyproject.toml poetry.lock* ./
+COPY --chown=appuser:appuser pyproject.toml poetry.lock* ./
 
-# Install dependencies
-RUN poetry install
+# Install dependencies only (without the current project for better caching)
+RUN poetry install --no-root
 
 # Copy application code
-COPY src/scrape_and_notify ./src/scrape_and_notify
+COPY --chown=appuser:appuser src/scrape_and_notify ./src/scrape_and_notify
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
-USER appuser
+# Install only the current project (dependencies already installed)
+RUN poetry install --only-root
 
 # Command to run the application
 CMD ["poetry", "run", "scrape-and-notify"]
