@@ -103,17 +103,21 @@ All configuration is handled through environment variables. Key settings include
 
 ```
 ├── src/
-│   ├── scrape_and_notify/
-│   │   ├── __init__.py
-│   │   ├── main.py       # Main application entry point
-│   │   ├── scraper.py    # Web scraping functionality
-│   │   ├── notifier.py   # Notification handling
-│   │   └── config.py     # Configuration management
-├── logs/                 # Log files (created automatically)
-├── Dockerfile           # Docker configuration
-├── docker-compose.yml   # Docker Compose configuration
-├── pyproject.toml       # Poetry dependencies
-└── ruff.toml           # Code formatting configuration
+│   └── scrape_and_notify/
+│       ├── __init__.py
+│       ├── main.py              # Main application entry point
+│       ├── scraper.py           # Web scraping functionality
+│       ├── notifier.py          # Notification handling
+│       ├── config.py            # Configuration management
+│       └── logging_formatter.py # Custom logging formatter
+├── README.md                    # Project documentation
+├── LICENSE                      # MIT License
+├── Dockerfile                   # Docker configuration
+├── docker-compose.yml           # Docker Compose configuration
+├── pyproject.toml              # Poetry dependencies and project config
+├── .gitignore                  # Git ignore rules
+├── .dockerignore               # Docker ignore rules
+└── .cursorignore               # Cursor IDE ignore rules
 ```
 
 ## Notifications
