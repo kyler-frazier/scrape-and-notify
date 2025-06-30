@@ -34,6 +34,8 @@ async def main():
     notifier = Notifier(bot_token=config.discord_bot_token, channel_id=config.discord_channel_id)
     scraper = WebScraper(notifier=notifier, timeout=config.request_timeout, delay=config.request_delay)
 
+    notifier.send_notification("Starting Scrape and Notify application...")
+
     try:
         while True:
             logger.info(
