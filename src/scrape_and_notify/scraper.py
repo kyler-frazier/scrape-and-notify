@@ -10,7 +10,7 @@ from typing import Any
 import aiohttp
 import backoff
 from bs4 import BeautifulSoup
-from jsonpath_ng import parse as jsonpath_parse
+from jsonpath_ng.ext import parse as jsonpath_parse
 
 from scrape_and_notify.notifier import Notifier
 
