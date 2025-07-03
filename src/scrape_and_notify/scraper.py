@@ -8,12 +8,15 @@ import logging
 from typing import Any
 
 import aiohttp
+import backoff
 from bs4 import BeautifulSoup
 from jsonpath_ng import parse as jsonpath_parse
 
 from scrape_and_notify.notifier import Notifier
 
 logger = logging.getLogger(__name__)
+
+_RETRYABLES = (aiohttp.ClientResponseError, aiohttp.ClientError, asyncio.TimeoutError)
 
 
 class WebScraper:
@@ -47,6 +50,8 @@ class WebScraper:
         if self.session and not self.session.closed:
             await self.session.close()
 
+    # Add backoff retries:
+    @backoff.on_exception(backoff.expo, _RETRYABLES, max_tries=5)
     async def fetch_page(self, url: str) -> str | None:
         """
         Fetch the content of a web page.

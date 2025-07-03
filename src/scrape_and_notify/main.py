@@ -26,6 +26,7 @@ async def main():
     """Main function to run the scraper."""
     logger.info("Starting web scraper...")
     logger.info(f"Target URL: {config.target_url}")
+    logger.info(f"Negative search: {config.negative}")
     logger.info(f"Search type: {config.search_type}")
     logger.info(f"Target match: {config.target_match}")
     logger.info(f"JSON path: {config.target_location}")
@@ -49,11 +50,13 @@ async def main():
                 json_path=config.target_location,
             )
 
+            search_desc = f"{config.search_type} search for '{config.target_match}' at path '{config.target_location}'"
+            if config.negative:
+                search_desc = "Negative " + search_desc
+                found = not found
+
             if found:
                 logger.info("Target match found!")
-                search_desc = (
-                    f"{config.search_type} search for '{config.target_match}' at path '{config.target_location}'"
-                )
                 await notifier.send_notification(f"{search_desc} found on {config.target_url}")
             else:
                 logger.info("Target match not found.")

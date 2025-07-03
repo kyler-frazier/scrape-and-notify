@@ -17,6 +17,7 @@ class Config(BaseSettings):
     target_url: str = Field(description="The target URL to scrape", alias="TARGET_URL")
 
     # Search configuration
+    negative: bool = Field(default=False, description="If True, search for the absence of a match", alias="NEGATIVE")
     search_type: str = Field(default="json", description="Search type: 'html' or 'json'", alias="SEARCH_TYPE")
     target_match: str = Field(description="Target value to match", alias="TARGET_MATCH")
     target_location: str | None = Field(description="JSONPath location for target match", alias="TARGET_LOCATION")
