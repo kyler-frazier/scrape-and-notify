@@ -182,6 +182,33 @@ poetry run ruff check
 poetry run ruff check --fix
 ```
 
+### Useful VSCode Settings
+For VSCode users, recommended project settings (found under `.vscode/settings.json`) include the following:
+```json
+{
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true,
+        "editor.tabSize": 4,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.organizeImports": "always"
+        }
+    },
+    "python.analysis.inlayHints.pytestParameters": true,
+    "python.analysis.enablePytestSupport": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "git.autorefresh": true,
+    "python.analysis.extraPaths": ["src"]
+}
+```
+
 ### Docker Development
 For development with live code reloading, you can mount the source code:
 ```yaml
