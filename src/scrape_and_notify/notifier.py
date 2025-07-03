@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 
 import discord
+from async_lru import alru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,44 @@ class Notifier:
         intents = discord.Intents.default()
         intents.message_content = True
         self.client = discord.Client(intents=intents)
+
+    @alru_cache(maxsize=1)
+    async def _get_initialized_discord_channel(self):
+        """
+        Get the initialized Discord channel (cached).
+
+        Returns:
+            Discord channel object if successful, None otherwise
+        """
+        if not self._is_discord_configured():
+            logger.warning("Discord not configured. Set DISCORD_BOT_TOKEN and DISCORD_CHANNEL_ID.")
+            return None
+
+        try:
+            # Login to Discord
+            await self.client.login(self.bot_token)
+
+            # Get and cache the channel
+            channel = self.client.get_channel(self.channel_id)
+            if not channel:
+                # If channel not in cache, fetch it
+                channel = await self.client.fetch_channel(self.channel_id)
+
+            if not channel:
+                logger.error(f"Could not find Discord channel with ID: {self.channel_id}")
+                return None
+
+            logger.info("Discord client initialized successfully")
+            return channel
+
+        except discord.errors.LoginFailure:
+            logger.exception("Failed to login to Discord. Check your DISCORD_BOT_TOKEN.")
+        except discord.errors.NotFound:
+            logger.exception(f"Discord channel with ID {self.channel_id} not found.")
+        except Exception as e:
+            logger.exception(f"Unexpected error initializing Discord client: {e}")
+
+        return None
 
     async def send_notification(self, message: str, title: str = "Scraper Alert") -> bool:
         """
@@ -86,16 +125,9 @@ class Notifier:
             True if message sent successfully
         """
         try:
-            await self.client.login(self.bot_token)
-
-            # Get the channel
-            channel = self.client.get_channel(self.channel_id)
+            # Get initialized channel (cached)
+            channel = await self._get_initialized_discord_channel()
             if not channel:
-                # If channel not in cache, fetch it
-                channel = await self.client.fetch_channel(self.channel_id)
-
-            if not channel:
-                logger.error(f"Could not find Discord channel with ID: {self.channel_id}")
                 return False
 
             # Create embed for better formatting
@@ -107,18 +139,14 @@ class Notifier:
             )
             embed.set_footer(text="Scraper Bot")
 
-            # Send the message
+            # Send the message using cached channel
             await channel.send(embed=embed)
 
             logger.info(f"Discord message sent successfully to channel {self.channel_id}")
             return True
 
-        except discord.errors.LoginFailure:
-            logger.exception("Failed to login to Discord. Check your DISCORD_BOT_TOKEN.")
         except discord.errors.Forbidden:
             logger.exception("Bot doesn't have permission to send messages to the specified channel.")
-        except discord.errors.NotFound:
-            logger.exception(f"Discord channel with ID {self.channel_id} not found.")
         except Exception as e:
             logger.exception(f"Unexpected error sending Discord message: {e}")
         return False
@@ -128,3 +156,6 @@ class Notifier:
         if not self.client.is_closed():
             await self.client.close()
             logger.info("Discord client connection closed")
+
+        # Clear the cache when closing
+        self._get_initialized_discord_channel.cache_clear()

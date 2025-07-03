@@ -3,6 +3,7 @@ Configuration module for the web scraper.
 """
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -29,15 +30,34 @@ class BaseSettingsAndSecrets(BaseSettings):
 
     def _read_secret(self, secret_name: str) -> str | None:
         """
-        Read a secret from Docker secrets or return None if not found.
-        Docker secrets are mounted at /run/secrets/<secret_name>
+        Read a secret from the appropriate location based on environment.
+        Uses 'CONTAINER' environment variable to determine location:
+        - If CONTAINER=docker: reads from /run/secrets/<secret_name>
+        - Otherwise: reads from secrets/<secret_name>
         """
-        secret_path = Path(f"/run/secrets/{secret_name}")
+        is_containerized = os.getenv("CONTAINER") == "docker"
+
+        if is_containerized:
+            # Use Docker secrets
+            secret_path = Path(f"/run/secrets/{secret_name}")
+            location_type = "Docker secrets"
+        else:
+            # Use local secrets directory
+            secret_path = Path(f"secrets/{secret_name}.txt")
+            logger.warning(
+                "Using local secrets directory instead of Docker secrets. "
+                "This is less secure but useful for local development."
+            )
+            location_type = "local secrets"
+
         if secret_path.exists():
             try:
                 return secret_path.read_text().strip()
             except Exception:
-                logger.exception(f"Failed to read secret {secret_name}")
+                logger.exception(f"Failed to read secret '{secret_name}' from {location_type}")
+        else:
+            logger.warning(f"Secret '{secret_name}' not found in {location_type} at {secret_path}")
+
         return None
 
 

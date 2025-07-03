@@ -11,19 +11,20 @@ from scrape_and_notify.logging_formatter import LoggingFormatter
 from scrape_and_notify.notifier import Notifier
 from scrape_and_notify.scraper import WebScraper
 
-# Instantiate the config
-config = Config()
-
 logger = logging.getLogger(__name__)
-
-logger.setLevel(config.log_level_int)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(LoggingFormatter())
-logger.addHandler(handler)
 
 
 async def main():
     """Main function to run the scraper."""
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(LoggingFormatter())
+    root_logger.addHandler(handler)
+
+    config = Config()
+    root_logger.setLevel(config.log_level_int)
+
     logger.info("Starting web scraper...")
     logger.info(f"Target URL: {config.target_url}")
     logger.info(f"Negative search: {config.negative}")
