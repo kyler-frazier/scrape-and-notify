@@ -37,8 +37,7 @@ A Python-based web scraper that monitors specific websites for target content an
    TARGET_LOCATION=$.data.status  # JSONPath for JSON search (required for json type)
    
    # Optional - Discord notifications
-   DISCORD_BOT_TOKEN=your-discord-bot-token
-   DISCORD_CHANNEL_ID=your-discord-channel-id
+   # Configure these with secrets - see below
    
    # Optional - Timing and request settings
    CHECK_INTERVAL=900  # seconds between checks (default: 15 minutes)
@@ -98,6 +97,44 @@ All configuration is handled through environment variables. Key settings include
   - Example: `TARGET_LOCATION=$.products[0].availability` 
 - **HTML Search** (`SEARCH_TYPE=html`): Search for text content within HTML pages
   - No `TARGET_LOCATION` needed for HTML searches
+
+## Docker Secrets Setup
+
+The `secrets/` directory contains sensitive configuration files that are used as Docker secrets.
+
+### Setup Instructions
+
+1. **Replace the placeholder values** in the following files with your actual credentials:
+   - `secrets/discord_bot_token.txt` - Your Discord bot token
+   - `secrets/discord_channel_id.txt` - Your Discord channel ID
+
+2. **Set proper file permissions** (recommended):
+   ```bash
+   chmod 600 secrets/*.txt
+   ```
+
+3. **Never commit these files to version control** - they're already in .gitignore
+
+### File Format
+
+Each secret file should contain only the secret value as plain text with no extra whitespace or newlines.
+
+Example:
+```
+# discord_bot_token.txt
+ABCDEFGHIJKLMNOPQRSTUVWXYZ.12345.67890
+
+# discord_channel_id.txt
+123456789012345678
+```
+
+### Security Benefits
+
+- Secrets are encrypted at rest by Docker
+- Not visible in `docker inspect` output
+- Not exposed in environment variables
+- Mounted as read-only files in container at `/run/secrets/`
+
 
 ## Project Structure
 

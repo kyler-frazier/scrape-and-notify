@@ -4,3 +4,12 @@ services:
     container_name: scrape-and-notify
     env_file:
       - .env
+    secrets:
+      - discord_bot_token
+      - discord_channel_id
+
+secrets:
+  discord_bot_token:
+    file: ./secrets/discord_bot_token.txt
+  discord_channel_id:
+    file: ./secrets/discord_channel_id.txt

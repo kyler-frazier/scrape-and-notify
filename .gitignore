@@ -136,6 +136,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Docker secrets
+secrets/
+
 # Spyder project settings
 .spyderproject
 .spyproject
