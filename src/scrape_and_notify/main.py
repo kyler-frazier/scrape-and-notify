@@ -25,18 +25,22 @@ async def main():
     config = Config()
     root_logger.setLevel(config.log_level_int)
 
-    logger.info("Starting web scraper...")
-    logger.info(f"Target URL: {config.target_url}")
-    logger.info(f"Negative search: {config.negative}")
-    logger.info(f"Search type: {config.search_type}")
-    logger.info(f"Target match: {config.target_match}")
-    logger.info(f"JSON path: {config.target_location}")
-    logger.info(f"Check interval: {config.check_interval} seconds")
+    startup_messages = [
+        "Starting Scrape and Notify application...",
+        f"Target URL: {config.target_url}",
+        f"Negative search: {config.negative}",
+        f"Search type: {config.search_type}",
+        f"Target match: {config.target_match}",
+        f"JSON path: {config.target_location}",
+        f"Check interval: {config.check_interval} seconds",
+    ]
+    for message in startup_messages:
+        logger.info(message)
 
     notifier = Notifier(bot_token=config.discord_bot_token, channel_id=config.discord_channel_id)
     scraper = WebScraper(notifier=notifier, timeout=config.request_timeout, delay=config.request_delay)
 
-    await notifier.send_notification("Starting Scrape and Notify application...")
+    await notifier.send_notification("\n".join(startup_messages))
 
     try:
         while True:
