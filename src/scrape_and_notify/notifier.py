@@ -8,6 +8,9 @@ from datetime import datetime
 import discord
 from async_lru import alru_cache
 
+# Suppress Discord voice client warnings: https://github.com/Rapptz/discord.py/issues/1719
+discord.VoiceClient.warn_nacl = False
+
 logger = logging.getLogger(__name__)
 
 
