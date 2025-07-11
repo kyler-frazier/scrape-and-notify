@@ -50,8 +50,13 @@ class WebScraper:
         if self.session and not self.session.closed:
             await self.session.close()
 
-    # Add backoff retries:
     @backoff.on_exception(backoff.expo, _RETRYABLES, max_tries=5)
+    async def _fetch_page_with_retries(self, url: str) -> str:
+        session = await self._get_session()
+        async with session.get(url) as response:
+            response.raise_for_status()
+            return await response.text()
+    
     async def fetch_page(self, url: str) -> str | None:
         """
         Fetch the content of a web page.
@@ -66,10 +71,7 @@ class WebScraper:
             logger.debug(f"Fetching page: {url}")
             await asyncio.sleep(self.delay)  # Be respectful
 
-            session = await self._get_session()
-            async with session.get(url) as response:
-                response.raise_for_status()
-                return await response.text()
+            return await self._fetch_page_with_retries(url)
 
         except aiohttp.ClientResponseError as e:
             # Handle HTTP status errors from response.raise_for_status()
