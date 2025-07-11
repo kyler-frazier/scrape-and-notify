@@ -9,7 +9,7 @@ import sys
 from scrape_and_notify.config import Config
 from scrape_and_notify.logging_formatter import LoggingFormatter
 from scrape_and_notify.notifier import Notifier
-from scrape_and_notify.scraper import WebScraper
+from scrape_and_notify.scraper import RETRYABLE_EXCEPTIONS, WebScraper
 
 logger = logging.getLogger(__name__)
 
@@ -48,23 +48,26 @@ async def main():
                 f"Checking {config.target_url} for '{config.target_match}' using {config.search_type} search..."
             )
 
-            found = await scraper.check_content(
-                url=config.target_url,
-                search_type=config.search_type,
-                target_match=config.target_match,
-                json_path=config.target_location,
-            )
+            try:
+                found = await scraper.check_content(
+                    url=config.target_url,
+                    search_type=config.search_type,
+                    target_match=config.target_match,
+                    json_path=config.target_location,
+                )
 
-            search_desc = f"{config.search_type} search for '{config.target_match}' at path '{config.target_location}'"
-            if config.negative:
-                search_desc = "Negative " + search_desc
-                found = not found
+                search_desc = f"{config.search_type} search for '{config.target_match}' at path '{config.target_location}'"
+                if config.negative:
+                    search_desc = "Negative " + search_desc
+                    found = not found
 
-            if found:
-                logger.info("Target match found!")
-                await notifier.send_notification(f"{search_desc} found on {config.target_url}")
-            else:
-                logger.info("Target match not found.")
+                if found:
+                    logger.info("Target match found!")
+                    await notifier.send_notification(f"{search_desc} found on {config.target_url}")
+                else:
+                    logger.info("Target match not found.")
+            except RETRYABLE_EXCEPTIONS:
+                logger.exception(f"Failed retryables during scrape...")
 
             logger.info(f"Waiting {config.check_interval} seconds before next check...")
             await asyncio.sleep(config.check_interval)

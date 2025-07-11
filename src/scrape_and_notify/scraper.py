@@ -16,7 +16,7 @@ from scrape_and_notify.notifier import Notifier
 
 logger = logging.getLogger(__name__)
 
-_RETRYABLES = (aiohttp.ClientResponseError, aiohttp.ClientError, asyncio.TimeoutError)
+RETRYABLE_EXCEPTIONS = (aiohttp.ClientResponseError, aiohttp.ClientError, asyncio.TimeoutError)
 
 
 class WebScraper:
@@ -50,14 +50,14 @@ class WebScraper:
         if self.session and not self.session.closed:
             await self.session.close()
 
-    @backoff.on_exception(backoff.expo, _RETRYABLES, max_tries=5)
+    @backoff.on_exception(backoff.expo, RETRYABLE_EXCEPTIONS, max_tries=5)
     async def _fetch_page_with_retries(self, url: str) -> str:
         session = await self._get_session()
         async with session.get(url) as response:
             response.raise_for_status()
             return await response.text()
     
-    async def fetch_page(self, url: str) -> str | None:
+    async def fetch_page(self, url: str) -> str:
         """
         Fetch the content of a web page.
 
@@ -77,16 +77,19 @@ class WebScraper:
             # Handle HTTP status errors from response.raise_for_status()
             logger.exception(f"HTTP error {e.status} occurred while fetching {url}: {e.message}")
             await self.notifier.send_notification(f"HTTP {e.status} error occurred while checking {url}: {e.message}")
+            raise
         except aiohttp.ClientError as e:
             logger.exception(f"Error fetching {url}: {e}")
             await self.notifier.send_notification(f"Network error occurred while checking {url}: {str(e)}")
+            raise
         except asyncio.TimeoutError as e:
             logger.exception(f"Timeout fetching {url}: {e}")
             await self.notifier.send_notification(f"Timeout error occurred while checking {url}: {str(e)}")
+            raise
         except Exception as e:
             logger.exception(f"Unexpected error fetching {url}: {e}")
             await self.notifier.send_notification(f"Unexpected error occurred while checking {url}: {str(e)}")
-        return None
+            raise
 
     def parse_content(self, html: str) -> str:
         """
